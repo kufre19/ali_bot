@@ -1,0 +1,53 @@
+version: "3.1"
+services:
+  app:
+    image: php8_0
+    container_name: ali_php8_0
+    build: 
+      context: .
+      dockerfile: .
+    restart: always
+    ports:
+      - 80:80
+      - 8000:8000
+    volumes:
+      - ./:/var/www/html
+      - ./php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      - ali
+
+    command: "php artisan serve --host=0.0.0.0 --port=8000"
+
+   
+
+  db:
+    image: mysql:latest
+    container_name: mysql_db_ali
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: admin
+    volumes:
+      - db-data:/docker-entrypoint-initdb.d
+      - db-data:/var/lib/mysql
+    networks:
+      - ali
+   
+  
+  phpmyadmin:
+    image: phpmyadmin:5.2.0-apache
+    restart: always
+    ports:
+      - 8080:80
+    environment:
+      - PMA_ARBITRARY=1
+    networks:
+      - ali
+
+
+networks:
+  ali:
+    driver: bridge
+
+
+volumes:
+  db-data:
