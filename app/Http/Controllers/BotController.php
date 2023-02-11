@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Traits\GeneralFunctions;
 use App\Traits\HandleButton;
 use App\Traits\HandleCart;
 use App\Traits\HandleMenu;
@@ -15,7 +16,7 @@ use Illuminate\Http\Request;
 
 class BotController extends Controller
 {
-    use HandleText, HandleButton, HandleMenu, SendMessage, MessagesType, HandleSession, HandleCart;
+    use HandleText, HandleButton, HandleMenu, SendMessage, MessagesType, HandleSession,GeneralFunctions;
 
     public $user_message_original;
     public $user_message_lowered;
@@ -27,8 +28,7 @@ class BotController extends Controller
     public $message_type;
     public $user_session_data;
     public $user_session_status;
-    public $wa_cart;
-    public $wa_cart_message;
+  
     /* 
     @$menu_item_id holds the id sent back from selecting an item from whatsapp
     @
@@ -40,6 +40,7 @@ class BotController extends Controller
     {
        
         if(!isset($request['hub_verify_token'])){
+    
             $this->username =$request['entry'][0]['changes'][0]["value"]['contacts'][0]['profile']['name'] ?? "there";
             $this->userphone =$request['entry'][0]['changes'][0]["value"]['contacts'][0]['wa_id'];
 
@@ -50,14 +51,7 @@ class BotController extends Controller
                 $this->message_type = "text";
             
             }
-            if(isset($request['entry'][0]['changes'][0]["value"]['messages'][0]['order']))
-            {
-                $this->wa_cart = $request['entry'][0]['changes'][0]["value"]['messages'][0]['order']['product_items'];
-                $this->wa_cart_message = $request['entry'][0]['changes'][0]["value"]['messages'][0]['order']['text'] ?? "None";
-                $this->message_type = "order";
-    
-    
-            }
+            
     
             if(isset($request['entry'][0]['changes'][0]["value"]['messages'][0]['interactive']))
             {
@@ -119,10 +113,6 @@ class BotController extends Controller
             case 'menu':
                 $this->menu_index();
                 break;
-
-            case 'order':
-                $this->add_wa_cart_items();
-                break;
             
             default:
                 die;
@@ -167,7 +157,7 @@ class BotController extends Controller
         $model->whatsapp_id = $this->userphone;
         $model->save();
         $this->start_new_session();
-        $this->send_first_timer_message();
+        $this->send_greetings_message();
 
     }
 
